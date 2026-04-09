@@ -11,6 +11,12 @@ class MouvementStock extends Model
 
     protected $table = 'mouvement_stock';
 
+    const CREATED_AT = 'cree_le';
+    public $timestamps = true; // Use only created_at logic
+    
+    // Since we only have cree_le, we disable UPDATED_AT
+    const UPDATED_AT = null;
+
     protected $fillable = [
         'produit_id',
         'utilisateur_id',

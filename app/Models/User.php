@@ -21,7 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
+        'role_id',
     ];
 
     /**
@@ -65,5 +65,13 @@ class User extends Authenticatable
     public function notifications()
     {
         return $this->hasMany(Notification::class, 'utilisateur_id');
+    }
+
+    /**
+     * Get the role for this user
+     */
+    public function role()
+    {
+        return $this->belongsTo(Role::class);
     }
 }

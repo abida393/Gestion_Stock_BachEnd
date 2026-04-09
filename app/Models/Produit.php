@@ -17,6 +17,10 @@ class Produit extends Model
 {
     use HasFactory, SoftDeletes;
 
+    const CREATED_AT = 'cree_le';
+    const UPDATED_AT = 'mis_a_jour_le';
+    const DELETED_AT = 'supprime_le';
+
     protected $table = 'produits';
 
     protected $fillable = [

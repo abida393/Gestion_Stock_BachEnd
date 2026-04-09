@@ -11,6 +11,9 @@ class Alerte extends Model
 
     protected $table = 'alertes';
 
+    const CREATED_AT = 'cree_le';
+    const UPDATED_AT = null;
+
     protected $fillable = [
         'produit_id',
         'seuil',
