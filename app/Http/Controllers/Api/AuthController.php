@@ -23,8 +23,10 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-            'role_id' => $request->role_id,
         ]);
+
+        // Default role
+        $user->assignRole('user');
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
@@ -73,7 +75,7 @@ class AuthController extends Controller
      */
     public function me(Request $request)
     {
-        return new UserResource($request->user()->load('role'));
+        return new UserResource($request->user());
     }
 
     /**

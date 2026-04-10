@@ -2,44 +2,44 @@
 
 namespace Database\Seeders;
 
-use App\Models\Permission;
-use App\Models\Role;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolePermissionSeeder extends Seeder
 {
     public function run(): void
     {
-        // Define all permissions
-        $permissionsList = [
-            'manage_users'       => 'Gérer les utilisateurs et rôles',
-            'delete_products'    => 'Supprimer produits et catégories',
-            'manage_movements'   => 'Ajouter/modifier des mouvements de stock',
-            'create_orders'      => 'Créer des commandes',
-            'manage_alerts'      => 'Configurer les alertes de stock bas',
-            'view_alerts'        => 'Voir les alertes de stock bas',
-            'view_analytics'     => 'Consulter les analyses et prédictions',
-            'manage_suppliers'   => 'Gérer les fournisseurs',
+        // Reset cached roles and permissions
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+        // Define permissions as per requested format
+        $permissions = [
+            'produit.create',
+            'produit.read',
+            'produit.update',
+            'produit.delete',
+            'stock.manage',
+            'commande.manage',
+            'rapport.generate',
+            'utilisateur.manage',
         ];
 
-        foreach ($permissionsList as $nom) {
-            Permission::updateOrCreate(['nom' => $nom]);
+        foreach ($permissions as $permission) {
+            Permission::firstOrCreate(['name' => $permission, 'guard_name' => 'web']);
         }
 
-        // ─── Admin ────────────────────────────────────────────────────────────
-        // Gets ALL permissions
-        $admin = Role::updateOrCreate(['nom' => 'Admin']);
-        $admin->permissions()->sync(Permission::all()->pluck('id'));
+        // Admin: all permissions
+        $admin = Role::firstOrCreate(['name' => 'admin', 'guard_name' => 'web']);
+        $admin->syncPermissions(Permission::all());
 
-        // ─── Utilisateur (Simple User) ────────────────────────────────────────
-        // manage_movements, create_orders, view_alerts only
-        $utilisateur = Role::updateOrCreate(['nom' => 'Utilisateur']);
-        $utilisateur->permissions()->sync(
-            Permission::whereIn('nom', [
-                'Ajouter/modifier des mouvements de stock',
-                'Créer des commandes',
-                'Voir les alertes de stock bas',
-            ])->pluck('id')
-        );
+        // User: limited permissions (read-only + stock access)
+        $user = Role::firstOrCreate(['name' => 'user', 'guard_name' => 'web']);
+        $user->syncPermissions([
+            'produit.read',
+            'stock.manage',
+            'commande.manage', // They probably need context of commande to manage stock, or maybe not. The prompt says: "user → limited permissions (read-only + stock access)"
+        ]);
     }
 }

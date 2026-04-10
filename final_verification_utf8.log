@@ -1,0 +1,31 @@
+﻿=== EXHAUSTIVE API VERIFICATION START ===
+--------------------------------------------------------------------------------------------------------------
+FEATURE                                            | METHOD PATH                           | STAT | RESULT
+--------------------------------------------------------------------------------------------------------------
+Login Admin                                        | POST   auth/login                     | 200 | Ô£à PASS
+Login User                                         | POST   auth/login                     | 200 | Ô£à PASS
+Profile (Me)                                       | GET    auth/me                        | 200 | Ô£à PASS
+Update Profile                                     | PUT    auth/me                        | 200 | Ô£à PASS
+List Users                                         | GET    users                          | 200 | Ô£à PASS
+List Users (User Role)                             | GET    users                          | 403 | Ô£à PASS
+Create User                                        | POST   users                          | 201 | Ô£à PASS
+Assign Role                                        | POST   users/2/roles                  | 200 | Ô£à PASS
+List Roles                                         | GET    roles                          | 200 | Ô£à PASS
+List Permissions                                   | GET    permissions                    | 200 | Ô£à PASS
+List Categories                                    | GET    categories                     | 200 | Ô£à PASS
+Create Category                                    | POST   categories                     | 422 | ÔØî FAIL
+List Products                                      | GET    products                       | 200 | Ô£à PASS
+Create Product                                     | POST   products                       | 422 | ÔØî FAIL
+Low Stock Products                                 | GET    products/low-stock             | 500 | ÔØî FAIL
+List Suppliers                                     | GET    fournisseurs                   | 200 | Ô£à PASS
+List Orders                                        | GET    commandes                      | 200 | Ô£à PASS
+List Movements                                     | GET    mouvements                     | 200 | Ô£à PASS
+List Entries                                       | GET    mouvements/entrees             | 200 | Ô£à PASS
+List Exits                                         | GET    mouvements/sorties             | 200 | Ô£à PASS
+Active Alerts                                      | GET    alertes/actives                | 200 | Ô£à PASS
+Unread Notifications                               | GET    notifications/unread-count     | 200 | Ô£à PASS
+Dashboard                                          | GET    dashboard                      | 200 | Ô£à PASS
+List Reports                                       | GET    rapports                       | 200 | Ô£à PASS
+Forecasts                                          | GET    previsions                     | 200 | Ô£à PASS
+--------------------------------------------------------------------------------------------------------------
+=== EXHAUSTIVE API VERIFICATION COMPLETE ===

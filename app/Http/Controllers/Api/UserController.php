@@ -7,6 +7,7 @@ use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
@@ -15,7 +16,7 @@ class UserController extends Controller
      */
     public function index()
     {
-        return UserResource::collection(User::with('role')->paginate(10));
+        return UserResource::collection(User::with('roles')->paginate(10));
     }
 
     /**
@@ -27,11 +28,17 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8',
-            'role_id' => 'required|exists:roles,id',
+            'role' => 'required|exists:roles,name',
         ]);
 
         $validated['password'] = Hash::make($validated['password']);
-        $user = User::create($validated);
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => $validated['password'],
+        ]);
+        
+        $user->assignRole($validated['role']);
 
         return new UserResource($user);
     }
@@ -41,7 +48,7 @@ class UserController extends Controller
      */
     public function show(User $user)
     {
-        return new UserResource($user->load('role'));
+        return new UserResource($user);
     }
 
     /**
@@ -53,7 +60,7 @@ class UserController extends Controller
             'name' => 'sometimes|string|max:255',
             'email' => 'sometimes|string|email|max:255|unique:users,email,' . $user->id,
             'password' => 'sometimes|string|min:8',
-            'role_id' => 'sometimes|exists:roles,id',
+            'role' => 'sometimes|exists:roles,name',
         ]);
 
         if (isset($validated['password'])) {
@@ -61,6 +68,10 @@ class UserController extends Controller
         }
 
         $user->update($validated);
+        
+        if (isset($validated['role'])) {
+            $user->syncRoles([$validated['role']]);
+        }
 
         return new UserResource($user);
     }
@@ -80,21 +91,21 @@ class UserController extends Controller
     public function assignRole(Request $request, User $user)
     {
         $validated = $request->validate([
-            'role_id' => 'required|exists:roles,id',
+            'role' => 'required|exists:roles,name',
         ]);
 
-        $user->update(['role_id' => $validated['role_id']]);
+        $user->assignRole($validated['role']);
 
-        return new UserResource($user->load('role'));
+        return new UserResource($user);
     }
 
     /**
-     * Remove role from user (set to null)
+     * Remove role from user
      */
-    public function removeRole(User $user)
+    public function removeRole(User $user, $roleName)
     {
-        $user->update(['role_id' => null]);
+        $user->removeRole($roleName);
 
-        return new UserResource($user->load('role'));
+        return new UserResource($user);
     }
 }

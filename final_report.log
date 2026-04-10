@@ -1,0 +1,31 @@
+﻿=== FINAL EXHAUSTIVE API AUDIT START ===
+-------------------------------------------------------------------------------------------------------------------
+FEATURE                                            | METHOD PATH                           | STATUS   | RESULT
+-------------------------------------------------------------------------------------------------------------------
+Login Admin                                        | POST   auth/login                     | 200 (200) | Ô£à PASS
+Login User                                         | POST   auth/login                     | 200 (200) | Ô£à PASS
+Profile (Me)                                       | GET    auth/me                        | 200 (200) | Ô£à PASS
+Update Profile                                     | PUT    auth/me                        | 200 (200) | Ô£à PASS
+List Users (Admin)                                 | GET    users                          | 200 (200) | Ô£à PASS
+List Users (User - RBAC)                           | GET    users                          | 403 (403) | Ô£à PASS
+Create User                                        | POST   users                          | 201 (201/200) | Ô£à PASS
+Assign Role (Admin Only)                           | POST   users/1/roles                  | 200 (200) | Ô£à PASS
+List Roles                                         | GET    roles                          | 200 (200) | Ô£à PASS
+List Permissions                                   | GET    permissions                    | 200 (200) | Ô£à PASS
+List Categories                                    | GET    categories                     | 200 (200) | Ô£à PASS
+Create Category                                    | POST   categories                     | 201 (201/200) | Ô£à PASS
+List Products                                      | GET    products                       | 200 (200) | Ô£à PASS
+Create Product                                     | POST   products                       | 201 (201/200) | Ô£à PASS
+Low Stock Products                                 | GET    products/low-stock             | 200 (200) | Ô£à PASS
+List Suppliers                                     | GET    fournisseurs                   | 200 (200) | Ô£à PASS
+List Orders                                        | GET    commandes                      | 200 (200) | Ô£à PASS
+List Movements                                     | GET    mouvements                     | 200 (200) | Ô£à PASS
+List Entries                                       | GET    mouvements/entrees             | 200 (200) | Ô£à PASS
+List Exits                                         | GET    mouvements/sorties             | 200 (200) | Ô£à PASS
+Active Alerts                                      | GET    alertes/actives                | 200 (200) | Ô£à PASS
+Unread Notifications                               | GET    notifications/unread-count     | 200 (200) | Ô£à PASS
+Dashboard                                          | GET    dashboard                      | 200 (200) | Ô£à PASS
+List Reports                                       | GET    rapports                       | 200 (200) | Ô£à PASS
+Forecasts                                          | GET    previsions                     | 200 (200) | Ô£à PASS
+-------------------------------------------------------------------------------------------------------------------
+=== FINAL EXHAUSTIVE API AUDIT COMPLETE ===

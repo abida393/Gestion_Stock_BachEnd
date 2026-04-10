@@ -4,37 +4,38 @@
 
 Base URL: /api/v1
 Auth: Protected by auth:sanctum (Bearer Token) unless specified
+RBAC: Some routes are restricted to users with the 'admin' role.
 
 ----------------------------------------------------------------
  AUTHENTICATION (/auth)
 ----------------------------------------------------------------
-POST   /register                        Create new user account
-POST   /login                           Authenticate, returns Bearer token
-POST   /logout                          Revoke current token (auth)
-GET    /me                              Get authenticated user profile (auth)
-PUT    /me                              Update own profile / password (auth)
+POST   /auth/register                   Create new user account (Default role: user)
+POST   /auth/login                      Authenticate, returns Bearer token + User (with roles/permissions)
+POST   /auth/logout                     Revoke current token (auth)
+GET    /auth/me                         Get authenticated user profile + roles/permissions (auth)
+PUT    /auth/me                         Update own profile / password (auth)
 
 ----------------------------------------------------------------
- USER MANAGEMENT (/users)
+ USER MANAGEMENT (/users) - [ADMIN ONLY]
 ----------------------------------------------------------------
-GET    /users                           List all users (paginated) (auth)
-POST   /users                           Create user (admin) (auth)
-GET    /users/{id}                      Get user details (auth)
-PUT    /users/{id}                      Update user (auth)
-DELETE /users/{id}                      Delete user (auth)
-POST   /users/{id}/roles                Assign role to user (auth)
-DELETE /users/{id}/roles/{roleId}       Remove role from user (auth)
+GET    /users                           List all users (paginated) (auth, role:admin)
+POST   /users                           Create user (admin) (auth, role:admin)
+GET    /users/{id}                      Get user details (auth, role:admin)
+PUT    /users/{id}                      Update user (auth, role:admin)
+DELETE /users/{id}                      Delete user (auth, role:admin)
+POST   /users/{id}/roles                Assign role name to user (auth, role:admin)
+DELETE /users/{id}/roles/{roleName}     Remove role name from user (auth, role:admin)
 
 ----------------------------------------------------------------
- RBAC (/roles, /permissions)
+ RBAC (/roles, /permissions) - [ADMIN ONLY]
 ----------------------------------------------------------------
-GET    /roles                           List all roles (auth)
-POST   /roles                           Create role (auth)
-GET    /roles/{id}                      Get role details (auth)
-PUT    /roles/{id}                      Update role name (auth)
-DELETE /roles/{id}                      Delete role (auth)
-POST   /roles/{id}/permissions          Sync permissions for a role (auth)
-GET    /permissions                     List available permissions (auth)
+GET    /roles                           List all roles (auth, role:admin)
+POST   /roles                           Create role (auth, role:admin)
+GET    /roles/{id}                      Get role details (auth, role:admin)
+PUT    /roles/{id}                      Update role name (auth, role:admin)
+DELETE /roles/{id}                      Delete role (auth, role:admin)
+POST   /roles/{id}/permissions          Sync permissions (by name) for a role (auth, role:admin)
+GET    /permissions                     List available permissions (auth, role:admin)
 
 ----------------------------------------------------------------
  INVENTORY (/categories, /products)
@@ -43,30 +44,30 @@ GET    /categories                      List all categories (auth)
 POST   /categories                      Create category (auth)
 GET    /categories/{id}                 Get category with products (auth)
 PUT    /categories/{id}                 Update category (auth)
-DELETE /categories/{id}                 Delete category (auth)
+DELETE /categories/{category}           Delete category (auth, role:admin)
 
 GET    /products                        List all products (filters: search, cat) (auth)
 POST   /products                        Create product (with image support) (auth)
 GET    /products/{id}                   Get product details (auth)
 PUT    /products/{id}                   Update product (auth)
-DELETE /products/{id}                   Soft delete product (auth)
+DELETE /products/{product}              Soft delete product (auth, role:admin)
 POST   /products/{id}/image             Upload product image (auth)
 GET    /products/low-stock              List products below minimum threshold (auth)
 
 ----------------------------------------------------------------
  SUPPLY CHAIN (/fournisseurs, /commandes)
 ----------------------------------------------------------------
-GET    /fournisseurs                   List all suppliers (auth)
-POST   /fournisseurs                   Create supplier (auth)
-GET    /fournisseurs/{id}              Get supplier details (auth)
-PUT    /fournisseurs/{id}              Update supplier (auth)
-DELETE /fournisseurs/{id}              Soft delete supplier (auth)
+GET    /fournisseurs                   List all suppliers (auth, role:admin)
+POST   /fournisseurs                   Create supplier (auth, role:admin)
+GET    /fournisseurs/{id}              Get supplier details (auth, role:admin)
+PUT    /fournisseurs/{id}              Update supplier (auth, role:admin)
+DELETE /fournisseurs/{id}              Soft delete supplier (auth, role:admin)
 
 GET    /commandes                      List all orders (filters: status, vendor) (auth)
 POST   /commandes                      Create order with lines (atomic) (auth)
 GET    /commandes/{id}                 Get order with line items (auth)
 PUT    /commandes/{id}                 Update order (if en_attente) (auth)
-DELETE /commandes/{id}                 Cancel/Delete order (auth)
+DELETE /commandes/{id}                 Cancel/Delete order (auth, role:admin)
 PATCH  /commandes/{id}/statut          Change state (en_attente/livree/annulee) (auth)
 
 ----------------------------------------------------------------
@@ -80,8 +81,9 @@ GET    /mouvements/sorties              List only exits (auth)
 
 GET    /alertes                        List all alerts (auth)
 GET    /alertes/actives                List current active alerts (auth)
+GET    /alertes/{id}                   Get alert details (auth)
 PATCH  /alertes/{id}/resolve           Mark alert as resolved (auth)
-DELETE /alertes/{id}                   Delete alert record (auth)
+DELETE /alertes/{alerte}               Delete alert record (auth, role:admin)
 
 ----------------------------------------------------------------
  NOTIFICATIONS (/notifications)
@@ -93,16 +95,16 @@ PATCH  /notifications/{id}/read       Mark specific notification as read (auth)
 DELETE /notifications/{id}            Delete notification (auth)
 
 ----------------------------------------------------------------
- REPORTING & DASHBOARD (/dashboard, /rapports, /previsions)
+ REPORTING & DASHBOARD (/dashboard, /rapports, /previsions) - [ADMIN ONLY]
 ----------------------------------------------------------------
-GET    /dashboard                      Get global KPIs (Value, Low Stock, etc) (auth)
-GET    /rapports                       List generated reports (auth)
-POST   /rapports                       Save report metadata (auth)
-GET    /rapports/{id}/download         Download report file (auth)
-DELETE /rapports/{id}                 Delete report record (auth)
+GET    /dashboard                      Get global KPIs (Value, Low Stock, etc) (auth, role:admin)
+GET    /rapports                       List generated reports (auth, role:admin)
+POST   /rapports                       Save report metadata (auth, role:admin)
+GET    /rapports/{id}/download         Download report file (auth, role:admin)
+DELETE /rapports/{id}                 Delete report record (auth, role:admin)
 
-GET    /previsions                     List demand forecasts (auth)
-POST   /previsions                     Create new forecast (auth)
-DELETE /previsions/{id}                Delete forecast record (auth)
-GET    /historique-ventes              Get sales history for analytics (auth)
-POST   /historique-ventes              Record manual sales entry (auth)
+GET    /previsions                     List demand forecasts (auth, role:admin)
+POST   /previsions                     Create new forecast (auth, role:admin)
+DELETE /previsions/{id}                Delete forecast record (auth, role:admin)
+GET    /historique-ventes              Get sales history for analytics (auth, role:admin)
+POST   /historique-ventes              Record manual sales entry (auth, role:admin)

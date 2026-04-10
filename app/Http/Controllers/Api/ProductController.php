@@ -22,7 +22,7 @@ class ProductController extends Controller
             $query->where('categorie_id', $request->categorie_id);
         }
 
-        if ($request->has('seuil_min_only')) {
+        if ($request->has('seuil_min_only') || $request->is('*/low-stock')) {
             $query->whereColumn('quantite', '<=', 'seuil_min');
         }
 

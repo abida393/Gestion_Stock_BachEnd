@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\RoleResource;
-use App\Models\Role;
+use Spatie\Permission\Models\Role;
 use Illuminate\Http\Request;
 
 class RoleController extends Controller
@@ -17,10 +17,10 @@ class RoleController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nom' => 'required|string|unique:roles',
+            'name' => 'required|string|unique:roles,name',
         ]);
 
-        $role = Role::create($validated);
+        $role = Role::create(['name' => $validated['name'], 'guard_name' => 'web']);
 
         return new RoleResource($role);
     }
@@ -33,10 +33,10 @@ class RoleController extends Controller
     public function update(Request $request, Role $role)
     {
         $validated = $request->validate([
-            'nom' => 'required|string|unique:roles,nom,' . $role->id,
+            'name' => 'required|string|unique:roles,name,' . $role->id,
         ]);
 
-        $role->update($validated);
+        $role->update(['name' => $validated['name']]);
 
         return new RoleResource($role);
     }
@@ -52,10 +52,10 @@ class RoleController extends Controller
     {
         $validated = $request->validate([
             'permissions' => 'required|array',
-            'permissions.*' => 'exists:permissions,id',
+            'permissions.*' => 'exists:permissions,name',
         ]);
 
-        $role->permissions()->sync($validated['permissions']);
+        $role->syncPermissions($validated['permissions']);
 
         return new RoleResource($role->load('permissions'));
     }
