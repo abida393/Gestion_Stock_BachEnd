@@ -64,7 +64,7 @@ Route::prefix('v1')->group(function () {
             // Analytics
             Route::apiResource('previsions', PrevisionController::class)->except(['update']);
             Route::apiResource('historique-ventes', HistoriqueVentesController::class)->only(['index', 'store']);
-            Route::get('dashboard', [ReportController::class, 'dashboard']);
+            // dashboard moved to shared routes below
             Route::get('rapports/{rapport}/download', [ReportController::class, 'download'])->name('rapports.download');
             Route::apiResource('rapports', ReportController::class)->except(['update']);
             
@@ -76,20 +76,39 @@ Route::prefix('v1')->group(function () {
         // SHARED ROUTES (Admin & User)
         // ==============================================
 
-        // Products & Categories (Read/Update/Create)
+        // Products & Categories (Read for all users)
         Route::get('products/low-stock', [ProductController::class, 'index'])->name('products.low-stock');
-        Route::apiResource('categories', CategoryController::class)->except(['destroy']);
-        Route::apiResource('products', ProductController::class)->except(['destroy']);
-        Route::post('products/{product}/image', [ProductController::class, 'uploadImage']);
+        Route::get('products', [ProductController::class, 'index']);
+        Route::get('products/{product}', [ProductController::class, 'show']);
+        Route::get('categories', [CategoryController::class, 'index']);
+        Route::get('categories/{category}', [CategoryController::class, 'show']);
+
+        // Products & Categories (Create/Update - Admin only)
+        Route::middleware('role:admin')->group(function () {
+            Route::post('products', [ProductController::class, 'store']);
+            Route::put('products/{product}', [ProductController::class, 'update']);
+            Route::patch('products/{product}', [ProductController::class, 'update']);
+            Route::post('products/{product}/image', [ProductController::class, 'uploadImage']);
+            Route::post('categories', [CategoryController::class, 'store']);
+            Route::put('categories/{category}', [CategoryController::class, 'update']);
+            Route::patch('categories/{category}', [CategoryController::class, 'update']);
+        });
 
         // Orders
         Route::apiResource('commandes', CommandeController::class);
         Route::patch('commandes/{commande}/statut', [CommandeController::class, 'updateStatut']);
 
-        // Stock Movements
-        Route::get('mouvements/entrees', [MouvementStockController::class, 'entries']);
-        Route::get('mouvements/sorties', [MouvementStockController::class, 'exits']);
-        Route::apiResource('mouvements', MouvementStockController::class)->only(['index', 'store', 'show']);
+        // Stock Movements - Create is open to all, history (index) is admin-only
+        Route::post('mouvements', [MouvementStockController::class, 'store']);
+        Route::get('mouvements/{mouvement}', [MouvementStockController::class, 'show']);
+        Route::middleware('role:admin')->group(function () {
+            Route::get('mouvements/entrees', [MouvementStockController::class, 'entries']);
+            Route::get('mouvements/sorties', [MouvementStockController::class, 'exits']);
+            Route::get('mouvements', [MouvementStockController::class, 'index']);
+        });
+
+        // Dashboard KPIs — all authenticated users
+        Route::get('dashboard', [ReportController::class, 'dashboard']);
 
         // Alerts (View & Resolve)
         Route::get('alertes/actives', [AlerteController::class, 'actives']);
@@ -105,3 +124,5 @@ Route::prefix('v1')->group(function () {
 
     });
 });
+
+

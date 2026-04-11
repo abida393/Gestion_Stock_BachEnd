@@ -55,7 +55,7 @@ class Produit extends Model
     {
         return $this->belongsToMany(Fournisseur::class, 'produit_fournisseur')
             ->withPivot('prix_unitaire', 'delai_livraison_jours')
-            ->withTimestamps();
+            ->withTimestamps('cree_le', 'mis_a_jour_le');
     }
 
     /**
@@ -98,3 +98,4 @@ class Produit extends Model
         return $this->hasMany(LigneCommande::class);
     }
 }
+
