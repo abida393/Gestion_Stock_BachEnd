@@ -19,7 +19,7 @@ return new class extends Migration
             $table->integer('stock_apres');
             $table->text('note')->nullable();
             $table->timestamp('date_mouvement');
-            $table->timestamp('cree_le')->useCurrent();
+            $table->timestamps();
             $table->enum('type', ['entree', 'sortie']);
 
             $table->foreign('produit_id')->references('id')->on('produits')->onDelete('cascade');

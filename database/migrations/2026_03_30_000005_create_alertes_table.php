@@ -18,7 +18,7 @@ return new class extends Migration
             $table->boolean('est_active')->default(true);
             $table->timestamp('declenche_le')->nullable();
             $table->timestamp('resolu_le')->nullable();
-            $table->timestamp('cree_le')->useCurrent();
+            $table->timestamps();
 
             $table->foreign('produit_id')->references('id')->on('produits')->onDelete('cascade');
         });

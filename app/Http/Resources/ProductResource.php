@@ -19,8 +19,8 @@ class ProductResource extends JsonResource
             'image_url' => $this->image ? Storage::url($this->image) : null,
             'prix' => $this->prix,
             'categorie' => new CategoryResource($this->whenLoaded('categorie')),
-            'cree_le' => $this->cree_le,
-            'mis_a_jour_le' => $this->mis_a_jour_le,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
             'is_low_stock' => $this->quantite <= $this->seuil_min,
         ];
     }

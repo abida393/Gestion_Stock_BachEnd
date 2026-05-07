@@ -27,9 +27,8 @@ return new class extends Migration
             $table->bigInteger('categorie_id');
             $table->string('image')->nullable();
             $table->decimal('prix', 10, 2);
-            $table->timestamp('cree_le')->useCurrent();
-            $table->timestamp('mis_a_jour_le')->useCurrent()->useCurrentOnUpdate();
-            $table->softDeletes('supprime_le');
+            $table->timestamps();
+            $table->softDeletes();
 
             $table->foreign('categorie_id')->references('id')->on('categories')->onDelete('cascade');
         });

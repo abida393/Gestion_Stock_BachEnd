@@ -34,8 +34,24 @@ class FournisseurController extends Controller
      */
     public function store(FournisseurRequest $request)
     {
-        $fournisseur = Fournisseur::create($request->validated());
-        return new FournisseurResource($fournisseur);
+        $data = $request->validated();
+        $produits = $data['produits'] ?? null;
+        unset($data['produits']);
+
+        $fournisseur = Fournisseur::create($data);
+
+        if ($produits) {
+            $syncData = [];
+            foreach ($produits as $p) {
+                $syncData[$p['id']] = [
+                    'prix_unitaire' => $p['prix_unitaire'],
+                    'delai_livraison_jours' => $p['delai_livraison_jours']
+                ];
+            }
+            $fournisseur->produits()->sync($syncData);
+        }
+
+        return new FournisseurResource($fournisseur->load('produits'));
     }
 
     /**
@@ -51,8 +67,24 @@ class FournisseurController extends Controller
      */
     public function update(FournisseurRequest $request, Fournisseur $fournisseur)
     {
-        $fournisseur->update($request->validated());
-        return new FournisseurResource($fournisseur);
+        $data = $request->validated();
+        $produits = $data['produits'] ?? null;
+        unset($data['produits']);
+
+        $fournisseur->update($data);
+
+        if ($produits !== null) {
+            $syncData = [];
+            foreach ($produits as $p) {
+                $syncData[$p['id']] = [
+                    'prix_unitaire' => $p['prix_unitaire'],
+                    'delai_livraison_jours' => $p['delai_livraison_jours']
+                ];
+            }
+            $fournisseur->produits()->sync($syncData);
+        }
+
+        return new FournisseurResource($fournisseur->load('produits'));
     }
 
     /**

@@ -23,6 +23,9 @@ class DashboardService
             'total_stock_value' => (float) Produit::select(DB::raw('SUM(quantite * prix) as value'))->value('value'),
             'movements_this_month' => MouvementStock::whereMonth('date_mouvement', now()->month)
                 ->whereYear('date_mouvement', now()->year)
+                ->when(!auth()->user()->hasRole('admin'), function ($query) {
+                    return $query->where('utilisateur_id', auth()->id());
+                })
                 ->count(),
         ];
     }

@@ -11,8 +11,7 @@ class Alerte extends Model
 
     protected $table = 'alertes';
 
-    const CREATED_AT = 'cree_le';
-    const UPDATED_AT = null;
+
 
     protected $fillable = [
         'produit_id',
@@ -26,7 +25,8 @@ class Alerte extends Model
         'est_active' => 'boolean',
         'declenche_le' => 'datetime',
         'resolu_le' => 'datetime',
-        'cree_le' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
     ];
 
     /**

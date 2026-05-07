@@ -51,7 +51,7 @@ return new class extends Migration
             $table->string('message');
             $table->string('type');
             $table->boolean('lu')->default(false);
-            $table->timestamp('cree_le')->useCurrent();
+            $table->timestamps();
 
             $table->foreign('utilisateur_id')->references('id')->on('users')->onDelete('cascade');
         });

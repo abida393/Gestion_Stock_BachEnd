@@ -1,0 +1,18 @@
+﻿ERROR MESSAGE:
+SQLSTATE[42703]: Undefined column: 7 ERREUR:  la colonne produit_fournisseur.cree_le n'existe pas
+LINE 1: ...ivraison_jours" as "pivot_delai_livraison_jours", "produit_f...
+                                                             ^ (Connection: pgsql, SQL: select "produits".*, "produit_fournisseur"."fournisseur_id" as "pivot_fournisseur_id", "produit_fournisseur"."produit_id" as "pivot_produit_id", "produit_fournisseur"."prix_unitaire" as "pivot_prix_unitaire", "produit_fournisseur"."delai_livraison_jours" as "pivot_delai_livraison_jours", "produit_fournisseur"."cree_le" as "pivot_cree_le", "produit_fournisseur"."mis_a_jour_le" as "pivot_mis_a_jour_le" from "produits" inner join "produit_fournisseur" on "produits"."id" = "produit_fournisseur"."produit_id" where "produit_fournisseur"."fournisseur_id" = 1 and "produits"."supprime_le" is null)
+
+Array
+(
+    [0] => Array
+        (
+            [query] => select * from "fournisseurs" where "fournisseurs"."supprime_le" is null limit 1
+            [bindings] => Array
+                (
+                )
+
+            [time] => 39.45
+        )
+
+)

@@ -25,6 +25,12 @@ class StockService
             if ($data['type'] === 'entree') {
                 $newStock = $oldStock + $movementQty;
             } else {
+                if ($oldStock <= 0) {
+                    throw new \Exception("Opération impossible : Le stock actuel est de 0.");
+                }
+                if ($oldStock < $movementQty) {
+                    throw new \Exception("Stock insuffisant. Stock actuel : $oldStock.");
+                }
                 $newStock = $oldStock - $movementQty;
             }
 

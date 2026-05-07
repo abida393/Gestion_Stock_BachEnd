@@ -17,8 +17,8 @@ class FournisseurResource extends JsonResource
             'numero_fix' => $this->numero_fix,
             'adresse' => $this->adresse,
             'produits' => ProductResource::collection($this->whenLoaded('produits')),
-            'cree_le' => $this->cree_le,
-            'mis_a_jour_le' => $this->mis_a_jour_le,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

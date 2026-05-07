@@ -16,7 +16,7 @@ class NotificationController extends Controller
     public function index()
     {
         return NotificationResource::collection(
-            Auth::user()->notifications()->latest('cree_le')->paginate(20)
+            Auth::user()->notifications()->latest()->paginate(20)
         );
     }
 

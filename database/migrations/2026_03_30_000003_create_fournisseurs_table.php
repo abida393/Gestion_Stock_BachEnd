@@ -18,9 +18,8 @@ return new class extends Migration
             $table->string('telephone');
             $table->string('numero_fix');
             $table->string('adresse');
-            $table->timestamp('cree_le')->useCurrent();
-            $table->timestamp('mis_a_jour_le')->useCurrent()->useCurrentOnUpdate();
-            $table->softDeletes('supprime_le');
+            $table->timestamps();
+            $table->softDeletes();
         });
     }
 

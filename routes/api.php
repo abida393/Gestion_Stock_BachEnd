@@ -98,14 +98,12 @@ Route::prefix('v1')->group(function () {
         Route::apiResource('commandes', CommandeController::class);
         Route::patch('commandes/{commande}/statut', [CommandeController::class, 'updateStatut']);
 
-        // Stock Movements - Create is open to all, history (index) is admin-only
+        // Stock Movements - Create and List are open to all (List is filtered by user in Controller)
         Route::post('mouvements', [MouvementStockController::class, 'store']);
+        Route::get('mouvements/entrees', [MouvementStockController::class, 'entries']);
+        Route::get('mouvements/sorties', [MouvementStockController::class, 'exits']);
+        Route::get('mouvements', [MouvementStockController::class, 'index']);
         Route::get('mouvements/{mouvement}', [MouvementStockController::class, 'show']);
-        Route::middleware('role:admin')->group(function () {
-            Route::get('mouvements/entrees', [MouvementStockController::class, 'entries']);
-            Route::get('mouvements/sorties', [MouvementStockController::class, 'exits']);
-            Route::get('mouvements', [MouvementStockController::class, 'index']);
-        });
 
         // Dashboard KPIs — all authenticated users
         Route::get('dashboard', [ReportController::class, 'dashboard']);

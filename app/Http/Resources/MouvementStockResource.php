@@ -20,7 +20,8 @@ class MouvementStockResource extends JsonResource
             'note' => $this->note,
             'date_mouvement' => $this->date_mouvement,
             'type' => $this->type,
-            'cree_le' => $this->cree_le,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

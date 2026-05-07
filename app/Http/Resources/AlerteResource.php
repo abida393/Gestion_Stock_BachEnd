@@ -17,7 +17,8 @@ class AlerteResource extends JsonResource
             'est_active' => (bool)$this->est_active,
             'declenche_le' => $this->declenche_le,
             'resolu_le' => $this->resolu_le,
-            'cree_le' => $this->cree_le,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

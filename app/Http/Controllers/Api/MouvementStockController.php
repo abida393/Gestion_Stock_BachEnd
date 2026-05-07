@@ -25,6 +25,11 @@ class MouvementStockController extends Controller
     {
         $query = MouvementStock::query();
 
+        // If not admin, only show your own movements
+        if (!$request->user()->hasRole('admin')) {
+            $query->where('utilisateur_id', $request->user()->id);
+        }
+
         if ($request->has('type')) {
             $query->where('type', $request->type);
         }
@@ -62,20 +67,32 @@ class MouvementStockController extends Controller
     /**
      * Filter: type=entree only
      */
-    public function entries()
+    public function entries(Request $request)
     {
+        $query = MouvementStock::where('type', 'entree');
+
+        if (!$request->user()->hasRole('admin')) {
+            $query->where('utilisateur_id', $request->user()->id);
+        }
+
         return MouvementStockResource::collection(
-            MouvementStock::where('type', 'entree')->with(['produit', 'utilisateur'])->paginate(15)
+            $query->with(['produit', 'utilisateur'])->paginate(15)
         );
     }
 
     /**
      * Filter: type=sortie only
      */
-    public function exits()
+    public function exits(Request $request)
     {
+        $query = MouvementStock::where('type', 'sortie');
+
+        if (!$request->user()->hasRole('admin')) {
+            $query->where('utilisateur_id', $request->user()->id);
+        }
+
         return MouvementStockResource::collection(
-            MouvementStock::where('type', 'sortie')->with(['produit', 'utilisateur'])->paginate(15)
+            $query->with(['produit', 'utilisateur'])->paginate(15)
         );
     }
 }

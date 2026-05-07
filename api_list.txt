@@ -58,9 +58,9 @@ GET    /products/low-stock              List products below minimum threshold (a
  SUPPLY CHAIN (/fournisseurs, /commandes)
 ----------------------------------------------------------------
 GET    /fournisseurs                   List all suppliers (auth, role:admin)
-POST   /fournisseurs                   Create supplier (auth, role:admin)
-GET    /fournisseurs/{id}              Get supplier details (auth, role:admin)
-PUT    /fournisseurs/{id}              Update supplier (auth, role:admin)
+POST   /fournisseurs                   Create supplier (supports atomic product sync) (auth, role:admin)
+GET    /fournisseurs/{id}              Get supplier details (loads linked products) (auth, role:admin)
+PUT    /fournisseurs/{id}              Update supplier + sync produtos array (auth, role:admin)
 DELETE /fournisseurs/{id}              Soft delete supplier (auth, role:admin)
 
 GET    /commandes                      List all orders (filters: status, vendor) (auth)
