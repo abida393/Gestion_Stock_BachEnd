@@ -16,6 +16,10 @@ class Fournisseur extends Model
 
     protected $table = 'fournisseurs';
 
+    const CREATED_AT = 'cree_le';
+    const UPDATED_AT = 'mis_a_jour_le';
+    const DELETED_AT = 'supprime_le';
+
     protected $fillable = [
         'nom',
         'email',
@@ -25,9 +29,9 @@ class Fournisseur extends Model
     ];
 
     protected $casts = [
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
-        'deleted_at' => 'datetime',
+        'cree_le' => 'datetime',
+        'mis_a_jour_le' => 'datetime',
+        'supprime_le' => 'datetime',
     ];
 
     /**
@@ -36,8 +40,8 @@ class Fournisseur extends Model
     public function produits()
     {
         return $this->belongsToMany(Produit::class, 'produit_fournisseur')
-            ->withPivot('prix_unitaire', 'delai_livraison_jours')
-            ->withTimestamps();
+            ->withPivot('prix_unitaire', 'delai_livraison_jours');
+
     }
 
     /**

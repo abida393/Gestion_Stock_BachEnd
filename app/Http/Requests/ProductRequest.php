@@ -15,6 +15,7 @@ class ProductRequest extends FormRequest
     {
         return [
             'nom' => 'required|string|max:255',
+            'sku' => 'nullable|string|max:50|unique:produits,sku,' . ($this->product ? $this->product->id : 'NULL'),
             'description' => 'required|string',
             'quantite' => 'required|integer',
             'seuil_min' => 'required|integer',

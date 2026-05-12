@@ -11,7 +11,8 @@ class MouvementStock extends Model
 
     protected $table = 'mouvement_stock';
 
-
+    const CREATED_AT = 'cree_le';
+    const UPDATED_AT = null;
 
     protected $fillable = [
         'produit_id',
@@ -25,8 +26,7 @@ class MouvementStock extends Model
 
     protected $casts = [
         'date_mouvement' => 'datetime',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'cree_le' => 'datetime',
     ];
 
     /**

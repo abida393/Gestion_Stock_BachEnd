@@ -14,6 +14,9 @@ use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PrevisionController;
 use App\Http\Controllers\Api\HistoriqueVentesController;
 use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\AIController;
+use App\Http\Controllers\Api\ChatController;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -107,6 +110,25 @@ Route::prefix('v1')->group(function () {
 
         // Dashboard KPIs — all authenticated users
         Route::get('dashboard', [ReportController::class, 'dashboard']);
+
+        // AI Sync
+        Route::post('ai/sync', [AIController::class, 'sync']);
+        Route::post('ai/simulate', [AIController::class, 'simulate']);
+        Route::get('ai/health-score', [AIController::class, 'healthScore']);
+        Route::post('ai/detect-anomalies', [AIController::class, 'detectAnomalies']);
+        Route::post('chat', [ChatController::class, 'chat']);
+        Route::post('ai/explain-prevision', [ChatController::class, 'explainPrevision']);
+        Route::post('ai/action', [ChatController::class, 'handleAction']);
+
+
+        // Previsions
+        Route::get('previsions', function (\Illuminate\Http\Request $request) {
+            $query = \App\Models\Prevision::with('produit');
+            if ($request->has('produit_id')) {
+                $query->where('produit_id', $request->produit_id);
+            }
+            return response()->json($query->orderBy('created_at', 'desc')->get());
+        });
 
         // Alerts (View & Resolve)
         Route::get('alertes/actives', [AlerteController::class, 'actives']);

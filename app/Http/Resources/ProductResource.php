@@ -13,6 +13,7 @@ class ProductResource extends JsonResource
         return [
             'id' => $this->id,
             'nom' => $this->nom,
+            'sku' => $this->sku,
             'description' => $this->description,
             'quantite' => $this->quantite,
             'seuil_min' => $this->seuil_min,
@@ -22,6 +23,13 @@ class ProductResource extends JsonResource
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'is_low_stock' => $this->quantite <= $this->seuil_min,
+            'pivot' => $this->whenPivotLoaded('produit_fournisseur', function () {
+                return [
+                    'prix_unitaire' => $this->pivot->prix_unitaire,
+                    'delai_livraison_jours' => $this->pivot->delai_livraison_jours,
+                ];
+            }),
+
         ];
     }
 }

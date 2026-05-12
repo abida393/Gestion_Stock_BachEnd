@@ -21,8 +21,13 @@ class Produit extends Model
 
     protected $table = 'produits';
 
+    const CREATED_AT = 'cree_le';
+    const UPDATED_AT = 'mis_a_jour_le';
+    const DELETED_AT = 'supprime_le';
+
     protected $fillable = [
         'nom',
+        'sku',
         'description',
         'quantite',
         'seuil_min',
@@ -33,8 +38,9 @@ class Produit extends Model
 
     protected $casts = [
         'prix' => 'decimal:2',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'cree_le' => 'datetime',
+        'mis_a_jour_le' => 'datetime',
+        'supprime_le' => 'datetime',
         'deleted_at' => 'datetime',
     ];
 
@@ -52,8 +58,8 @@ class Produit extends Model
     public function fournisseurs()
     {
         return $this->belongsToMany(Fournisseur::class, 'produit_fournisseur')
-            ->withPivot('prix_unitaire', 'delai_livraison_jours')
-            ->withTimestamps();
+            ->withPivot('prix_unitaire', 'delai_livraison_jours');
+
     }
 
     /**

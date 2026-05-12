@@ -1,0 +1,67 @@
+===========================================================
+PROJET : StockManager AI - Agent de Prédiction & Analyse
+DATE    : Avril 2026
+===========================================================
+
+CE QUE FAIT CET AGENT :
+1. Prévision des ventes (Modèle Prophet de Meta).
+2. Détection d'anomalies de stock (Isolation Forest - Scikit-Learn).
+3. Calcul de la quantité optimale de commande (Formule de Wilson - EOQ).
+4. Stockage des résultats dans PostgreSQL pour ton dashboard Laravel/React.
+
+-----------------------------------------------------------
+1. PRÉ-REQUIS SYSTÈME
+-----------------------------------------------------------
+- Python 3.10 ou supérieur installé.
+- PostgreSQL installé et configuré (Base de données 'stock').
+- Git Bash (conseillé) ou CMD.
+
+-----------------------------------------------------------
+2. INSTALLATION (ÉTAPES TERMINAL)
+-----------------------------------------------------------
+Ouvre ton terminal dans ce dossier et exécute :
+
+# A. Créer l'environnement virtuel
+python -m venv venv
+
+# B. Activer l'environnement
+# Sur Windows (Git Bash) :
+source venv/Scripts/activate
+# Sur Windows (CMD) :
+venv\Scripts\activate
+
+# C. Installer les dépendances
+pip install -r requirements.txt
+
+-----------------------------------------------------------
+3. CONFIGURATION DE LA BASE DE DONNÉES
+-----------------------------------------------------------
+Ouvre les fichiers 'intelligence.py' et 'intelligence_pro.py'.
+Modifie la ligne 8 (Connexion SQL) :
+engine = create_engine('postgresql://postgres:TON_MOT_DE_PASSE@localhost:5432/stock')
+
+Remplace 'TON_MOT_DE_PASSE' par ton mot de passe PostgreSQL réel.
+
+-----------------------------------------------------------
+4. UTILISATION
+-----------------------------------------------------------
+
+Étape 1 : Initialisation (À FAIRE UNE SEULE FOIS)
+> python intelligence.py
+(Cela crée les tables et insère 180 jours de données de test).
+
+Étape 2 : Lancement de l'Agent IA (À faire quotidiennement)
+> python intelligence_pro.py
+(Cela analyse tes données et remplit la table 'previsions').
+
+-----------------------------------------------------------
+5. INTERPRÉTATION DES RÉSULTATS (TABLE 'previsions')
+-----------------------------------------------------------
+- quantite_predite : Estimation des ventes pour les prochaines 24h.
+- eoq : Quantité idéale à commander pour minimiser les coûts.
+- score_anomalie : Si > 0.10, méfiance ! (Vol, perte ou erreur de saisie).
+- confiance : Fiabilité statistique de la prédiction.
+
+===========================================================
+FIN DU GUIDE
+===========================================================

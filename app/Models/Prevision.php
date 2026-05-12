@@ -18,6 +18,7 @@ class Prevision extends Model
         'confiance',
         'eoq',
         'score_anomalie',
+        'reasoning',
     ];
 
     protected $casts = [

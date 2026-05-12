@@ -11,7 +11,8 @@ class Notification extends Model
 
     protected $table = 'notifications';
 
-
+    const CREATED_AT = 'cree_le';
+    const UPDATED_AT = null;
 
     protected $fillable = [
         'utilisateur_id',
@@ -22,8 +23,7 @@ class Notification extends Model
 
     protected $casts = [
         'lu' => 'boolean',
-        'created_at' => 'datetime',
-        'updated_at' => 'datetime',
+        'cree_le' => 'datetime',
     ];
 
     /**

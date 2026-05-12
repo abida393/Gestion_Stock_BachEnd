@@ -6,18 +6,34 @@ use App\Models\Produit;
 use App\Models\MouvementStock;
 use App\Models\Alerte;
 use App\Models\Notification;
+use App\Services\AIService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class StockService
 {
+    protected $aiService;
+
+    public function __construct(AIService $aiService)
+    {
+        $this->aiService = $aiService;
+    }
+
     /**
      * Record a stock movement and update product quantity.
      */
     public function recordMovement(array $data)
     {
-        return DB::transaction(function () use ($data) {
-            $product = Produit::lockForUpdate()->findOrFail($data['produit_id']);
+        $product = Produit::findOrFail($data['produit_id']);
+
+        // ── Validation IA en temps réel ──
+        $aiValidation = $this->aiService->validateMovement($product, $data['type'], $data['quantite']);
+        if (!$aiValidation['allowed']) {
+            throw new \Exception("🚫 ACTION BLOQUÉE PAR L'IA : " . $aiValidation['reason']);
+        }
+
+        return DB::transaction(function () use ($data, $product) {
+            $product->lockForUpdate();
             
             $oldStock = $product->quantite;
             $movementQty = $data['quantite'];
