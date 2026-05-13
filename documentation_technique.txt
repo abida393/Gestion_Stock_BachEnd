@@ -1,0 +1,74 @@
+DOCUMENTATION TECHNIQUE : SYSTÈME DE GESTION DE STOCK INTELLIGENT (STOCKMANAGER)
+==========================================================================
+
+1. PRÉSENTATION GLOBALE
+-----------------------
+
+L'application StockManager est une solution de gestion d'inventaire de nouvelle génération intégrant de l'Intelligence Artificielle pour l'aide à la décision. Le système repose sur une architecture découpée en trois couches distinctes :
+
+*   Frontend (Interface Utilisateur) : Développé avec React et Vite, utilisant Tailwind CSS pour un design "SaaS Premium" moderne, réactif et épuré.
+*   Backend (Cœur Logique & API) : Propulsé par Laravel, il gère la logique métier, l'authentification (Sanctum), la persistance des données et la communication avec l'IA.
+*   Agent IA (Moteur d'Analyse) : Un micro-service Python (Flask) dédié aux calculs statistiques lourds (Prévisions, EOQ) et à l'interfaçage avec les LLM (Large Language Models).
+
+FLUX DE DONNÉES :
+L'interface React communique via des API REST avec Laravel. Lorsque des analyses complexes sont requises, Laravel extrait les données de PostgreSQL, les formate en JSON et les envoie à l'Agent Python qui retourne des recommandations intelligentes.
+
+2. DÉTAILS DES MODULES FONCTIONNELS
+-----------------------------------
+
+*   GESTION DES PRODUITS & FOURNISSEURS : CRUD complet avec gestion des catégories, des SKU uniques, et des relations contractuelles avec les fournisseurs.
+*   MOUVEMENTS DE STOCK : Traçabilité totale des entrées et sorties. Chaque mouvement met à jour le stock actuel et déclenche potentiellement des alertes.
+*   SYSTÈME D'ALERTES DE VIGILANCE : Un moteur de règles surveille les seuils critiques. En cas de passage sous le seuil minimum, une alerte est générée et affichée en temps réel.
+*   JOURNAL D'AUDIT (TRAÇABILITÉ) : Chaque action sensible (création, modification, suppression) est enregistrée dans un journal d'audit enrichi (ID, Utilisateur, Produit, Fournisseur, Date) pour une transparence opérationnelle totale.
+
+3. FOCUS SPÉCIAL : LE MODULE IA (CŒUR DU SYSTÈME)
+-------------------------------------------------
+
+Le module IA est le véritable différenciateur technologique de StockManager. Voici le détail des flux techniques :
+
+A. COMMUNICATION BACKEND <=> BASE DE DONNÉES (POSTGRESQL) :
+Le Backend Laravel utilise l'ORM Eloquent pour extraire les données nécessaires à l'intelligence :
+1. Extraction Brute : Récupération de l'historique complet des mouvements (entrées/sorties) via le modèle 'MouvementStock'.
+2. Agrégation Temporelle : Les données sont groupées par jour/semaine pour identifier les tendances de consommation (Seasonal Pattern Recognition).
+3. Contexte Métier : Laravel injecte les seuils de sécurité, les délais de livraison fournisseurs et les stocks actuels pour donner un sens aux prévisions.
+
+B. COMMUNICATION BACKEND <=> AGENT IA PYTHON (FLASK) :
+Le dialogue entre Laravel et Python se fait via une API REST interne :
+1. Protocole : Requêtes HTTP POST sécurisées.
+2. Payload JSON : Laravel envoie un objet structuré contenant l'historique des ventes et les paramètres du produit.
+3. Traitement Python : L'agent Python utilise des bibliothèques de data-science (Pandas, NumPy) pour :
+   - Calculer la moyenne mobile et la variance de la demande.
+   - Appliquer la formule de Wilson (EOQ) : Q = √((2 * D * S) / H) où D=Demande, S=Coût commande, H=Coût stockage.
+4. Réponse : Python renvoie un objet JSON contenant les prédictions et les scores de confiance.
+
+C. INTÉGRATION DU LLM (GROQ / GEMINI) - LE COPILOTE :
+Le chatbot utilise une architecture "RAG-lite" (Retrieval-Augmented Generation) :
+1. Prompt Engineering : Laravel construit un prompt "augmenté" qui contient la question de l'utilisateur + les données réelles du produit (ex: "Le produit X a un stock de 10 et on en vend 5 par jour...").
+2. Traitement Groq (Llama 3) : Le LLM analyse ce contexte et génère une réponse stratégique.
+3. Parsing d'Actions : L'IA peut renvoyer des balises spéciales (ex: [ACTION:ORDER]) que le Frontend interprète pour afficher des boutons interactifs.
+
+D. COMMUNICATION FRONTEND <=> BACKEND (API INSIGHTS) :
+Le Frontend React appelle les endpoints dédiés :
+- GET /ai/health-score : Pour le dashboard.
+- POST /ai/sync : Pour forcer une nouvelle analyse globale.
+- POST /ai/chat : Pour le chatbot interactif.
+Les résultats sont ensuite mis en cache localement (State Management) et visualisés via des composants Recharts (graphiques d'évolution).
+
+
+4. INTERCONNEXION ET SÉCURITÉ
+-----------------------------
+
+SÉCURITÉ DES DONNÉES :
+Laravel joue le rôle de bouclier (Proxy). L'agent Python et la base de données PostgreSQL ne sont jamais exposés directement au frontend. Toutes les requêtes sont interceptées, validées et authentifiées via des jetons sécurisés (Tokens).
+
+GESTION DES RÔLES (RBAC) :
+Le système distingue les Administrateurs (accès complet, rapports IA, gestion utilisateurs) des Utilisateurs standards (consultation, mouvements simples). Cette distinction est renforcée tant au niveau du Frontend (routes protégées) qu'au niveau du Backend (Middlewares et Policies).
+
+5. VALEUR AJOUTÉE
+-----------------
+
+StockManager transforme la gestion de stock d'une tâche administrative en un levier de croissance :
+*   Gain de Temps : Automatisation des rapports et des calculs de commande.
+*   Réduction des Ruptures : Alertes prédictives avant même que le stock ne soit épuisé.
+*   Réduction du Surstock : L'EOQ permet de ne commander que le nécessaire, libérant ainsi de la trésorerie.
+*   Aide à la Décision : Le chatbot IA permet à n'importe quel employé de comprendre des données complexes sans être un expert en statistiques.
