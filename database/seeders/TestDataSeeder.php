@@ -47,6 +47,8 @@ class TestDataSeeder extends Seeder
             ['nom' => 'Savon Liquide 5L',           'categorie_id' => $catIds['Nettoyage'], 'quantite' => 4,  'seuil_min' => 6,  'prix' => 85.00, 'description' => 'Antibactérien'],
             ['nom' => 'Perceuse Bosch Pro',         'categorie_id' => $catIds['Outillage'], 'quantite' => 7,  'seuil_min' => 3,  'prix' => 1450.00, 'description' => 'Sans fil'],
             ['nom' => 'Tournevis Set (x12)',        'categorie_id' => $catIds['Outillage'], 'quantite' => 18, 'seuil_min' => 5,  'prix' => 320.00, 'description' => 'Précision'],
+            ['nom' => 'Serveur Rack Enterprise',    'categorie_id' => $catIds['Électronique'], 'quantite' => 2,  'seuil_min' => 1,  'prix' => 45000.00, 'description' => 'Haute performance - Dormant'],
+            ['nom' => 'Gobelets Plastique (x1000)', 'categorie_id' => $catIds['Alimentation'], 'quantite' => 500, 'seuil_min' => 100, 'prix' => 150.00, 'description' => 'Forte rotation'],
         ];
 
         $produitIds = [];
@@ -94,6 +96,11 @@ class TestDataSeeder extends Seeder
             ['produit_idx' => 1,  'type' => 'sortie', 'quantite' => 5,  'days_ago' => 0],
             ['produit_idx' => 6,  'type' => 'sortie', 'quantite' => 3,  'days_ago' => 0],
             ['produit_idx' => 9,  'type' => 'sortie', 'quantite' => 10, 'days_ago' => 0, 'hour' => 23], // Sortie nocturne suspecte
+            ['produit_idx' => 15, 'type' => 'sortie', 'quantite' => 50, 'days_ago' => 2],
+            ['produit_idx' => 15, 'type' => 'sortie', 'quantite' => 30, 'days_ago' => 4],
+            ['produit_idx' => 15, 'type' => 'sortie', 'quantite' => 40, 'days_ago' => 6],
+            ['produit_idx' => 15, 'type' => 'sortie', 'quantite' => 60, 'days_ago' => 8],
+            ['produit_idx' => 14, 'type' => 'entree', 'quantite' => 1,  'days_ago' => 25],
         ];
 
         foreach ($mouvements as $m) {

@@ -12,10 +12,11 @@ use App\Models\MouvementStock;
 use App\Models\Prevision;
 use App\Models\HistoriqueVentes;
 use App\Models\LigneCommande;
+use App\Traits\Auditable;
 
 class Produit extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, Auditable;
 
 
 

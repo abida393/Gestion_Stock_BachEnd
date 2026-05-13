@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\HistoriqueVentesController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\AIController;
 use App\Http\Controllers\Api\ChatController;
+use App\Http\Controllers\Api\AIAnalysisController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -73,6 +74,10 @@ Route::prefix('v1')->group(function () {
             
             // Alert Configs
             Route::apiResource('alertes', AlerteController::class)->except(['store', 'update', 'index', 'show']);
+
+            // AI Analysis & Audit
+            Route::get('ai/abc-analysis', [AIAnalysisController::class, 'abcAnalysis']);
+            Route::get('audit-logs', [AIAnalysisController::class, 'auditLogs']);
         });
 
         // ==============================================

@@ -26,8 +26,19 @@ class ProductController extends Controller
             $query->whereColumn('quantite', '<=', 'seuil_min');
         }
 
+        if ($request->has('status')) {
+            $status = $request->status;
+            if ($status === 'out') {
+                $query->where('quantite', '<=', 0);
+            } elseif ($status === 'low') {
+                $query->whereColumn('quantite', '<=', 'seuil_min')->where('quantite', '>', 0);
+            } elseif ($status === 'normal') {
+                $query->whereColumn('quantite', '>', 'seuil_min');
+            }
+        }
+
         if ($request->has('search')) {
-            $query->where('nom', 'like', '%' . $request->search . '%');
+            $query->whereRaw('LOWER(nom) LIKE ?', ['%' . strtolower($request->search) . '%']);
         }
 
         return ProductResource::collection($query->with('categorie')->paginate(15));
