@@ -17,7 +17,12 @@ class DatabaseSeeder extends Seeder
             CategorySeeder::class,
             FournisseurSeeder::class,
             ProductSeeder::class,
-            UserSeeder::class,
+            MouvementStockSeeder::class,
+            AlerteSeeder::class,
+            PrevisionSeeder::class,
+            RapportSeeder::class,
+            AuditLogSeeder::class,
+            // UserSeeder::class, // Excluded as requested
         ]);
     }
 }

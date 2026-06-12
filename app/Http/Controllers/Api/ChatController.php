@@ -50,6 +50,27 @@ class ChatController extends Controller
             $context['chart_data_available'] = $recentMovements;
         }
 
+        // Détection de requêtes régionales ou de rentabilité
+        if (str_contains($msg, 'région') || str_contains($msg, 'region') || str_contains($msg, 'canal') || str_contains($msg, 'rentable') || str_contains($msg, 'fournisseur')) {
+            $regionalMovements = MouvementStock::where('type', 'sortie')
+                ->whereNotNull('region')
+                ->with(['produit.fournisseurs'])
+                ->get()
+                ->map(function ($m) {
+                    return [
+                        'produit_id' => $m->produit_id,
+                        'produit_nom' => $m->produit->nom ?? '',
+                        'fournisseur' => $m->produit->fournisseurs->first()->nom ?? 'Inconnu',
+                        'region' => $m->region,
+                        'canal' => $m->canal,
+                        'quantite' => $m->quantite,
+                        'prix_unitaire' => $m->prix_unitaire,
+                        'chiffre_affaires' => $m->quantite * $m->prix_unitaire,
+                    ];
+                });
+            $context['regional_sales_data'] = $regionalMovements;
+        }
+
         $response = $this->llmService->generateResponse($request->message, $context, $history);
 
         return response()->json([
@@ -65,7 +86,7 @@ class ChatController extends Controller
         // On envoie le top 15 des produits (par stock ou par criticité) en format ultra-slim
         $produits = Produit::orderBy('quantite', 'asc')
             ->limit(15)
-            ->get(['id', 'nom', 'quantite', 'seuil_min']);
+            ->get(['id', 'nom', 'quantite', 'seuil_min', 'stock_reserve']);
 
 
         // Les 3 dernières anomalies détectées
@@ -110,7 +131,9 @@ class ChatController extends Controller
         $context = [
             'produit' => [
                 'nom' => $produit->nom,
-                'stock_actuel' => $produit->quantite,
+                'stock_physique' => $produit->quantite,
+                'stock_reserve' => $produit->stock_reserve,
+                'stock_disponible' => $produit->stock_disponible,
                 'seuil_min' => $produit->seuil_min,
             ],
 
@@ -155,9 +178,14 @@ class ChatController extends Controller
 
                 $fournisseurId = $params['fournisseur_id'] ?? ($produit->fournisseurs->first()->id ?? null);
 
+                // Fallback global si le produit n'a pas de fournisseur attitré
+                if (!$fournisseurId) {
+                    $fallbackFournisseur = \App\Models\Fournisseur::first();
+                    $fournisseurId = $fallbackFournisseur ? $fallbackFournisseur->id : null;
+                }
 
                 if (!$fournisseurId) {
-                    return response()->json(['message' => 'Aucun fournisseur associé à ce produit.'], 400);
+                    return response()->json(['message' => 'Aucun fournisseur disponible dans le système pour créer la commande.'], 400);
                 }
                 
                 $commande = Commande::create([

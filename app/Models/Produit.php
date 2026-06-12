@@ -21,6 +21,7 @@ class Produit extends Model
 
 
     protected $table = 'produits';
+    protected $appends = ['stock_disponible'];
 
     const CREATED_AT = 'cree_le';
     const UPDATED_AT = 'mis_a_jour_le';
@@ -31,10 +32,13 @@ class Produit extends Model
         'sku',
         'description',
         'quantite',
+        'is_active',
         'seuil_min',
         'categorie_id',
         'image',
         'prix',
+        'stock_reserve',
+        'stock_en_transit',
     ];
 
     protected $casts = [
@@ -44,6 +48,11 @@ class Produit extends Model
         'supprime_le' => 'datetime',
         'deleted_at' => 'datetime',
     ];
+
+    public function getStockDisponibleAttribute()
+    {
+        return ($this->quantite + $this->stock_en_transit) - $this->stock_reserve;
+    }
 
     /**
      * Get the categorie for this produit

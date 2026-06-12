@@ -18,15 +18,12 @@ class MouvementStockController extends Controller
         $this->stockService = $stockService;
     }
 
-    /**
-     * List movements (filter: type, produit, date range)
-     */
     public function index(Request $request)
     {
         $query = MouvementStock::query();
 
-        // If not admin, only show your own movements
-        if (!$request->user()->hasRole('admin')) {
+        // If not admin OR if personal=1 is requested, only show own movements
+        if (!$request->user()->hasRole('admin') || $request->has('personal')) {
             $query->where('utilisateur_id', $request->user()->id);
         }
 

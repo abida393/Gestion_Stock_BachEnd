@@ -22,18 +22,21 @@ class AIController extends Controller
     public function sync(Request $request)
     {
         try {
+            $period = $request->input('period', '30j');
+            
             // 1. Récupérer les données
             $produits = Produit::all();
             $mouvements = MouvementStock::all();
 
             $payload = [
                 'produits' => $produits,
-                'mouvements' => $mouvements
+                'mouvements' => $mouvements,
+                'period' => $period
             ];
 
             // 2. Envoyer à l'agent IA (Port 5000) avec Timeout court et message poli
             try {
-                $response = Http::timeout(2)->post('http://127.0.0.1:5000/predict', $payload);
+                $response = Http::timeout(5)->post('http://127.0.0.1:5000/predict', $payload);
                 
                 if ($response->failed()) {
                     Log::warning('L\'agent Python a renvoyé une erreur: ' . $response->status());
@@ -53,7 +56,7 @@ class AIController extends Controller
 
 
             // 3. Traiter la réponse et enregistrer dans Prevision
-            $periode = now()->format('Y-m'); // e.g., 2026-05
+            $periodeLabel = now()->format('Y-m') . '_' . $period; 
 
             $count = 0;
             foreach ($predictions as $prediction) {
@@ -61,7 +64,7 @@ class AIController extends Controller
                     Prevision::updateOrCreate(
                         [
                             'produit_id' => $prediction['produit_id'],
-                            'periode'    => $periode
+                            'periode'    => $periodeLabel
                         ],
                         [
                             'quantite_predite' => $prediction['quantite'] ?? 0,

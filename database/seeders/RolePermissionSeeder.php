@@ -24,6 +24,7 @@ class RolePermissionSeeder extends Seeder
             'commande.manage',
             'rapport.generate',
             'utilisateur.manage',
+            'alerte.resolve',
         ];
 
         foreach ($permissions as $permission) {
@@ -39,7 +40,8 @@ class RolePermissionSeeder extends Seeder
         $user->syncPermissions([
             'produit.read',
             'stock.manage',
-            'commande.manage', // They probably need context of commande to manage stock, or maybe not. The prompt says: "user → limited permissions (read-only + stock access)"
+            'commande.manage', 
+            'alerte.resolve',
         ]);
     }
 }

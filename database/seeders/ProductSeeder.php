@@ -4,52 +4,40 @@ namespace Database\Seeders;
 
 use App\Models\Categorie;
 use App\Models\Produit;
+use App\Models\Fournisseur;
 use Illuminate\Database\Seeder;
+use Faker\Factory as Faker;
 
 class ProductSeeder extends Seeder
 {
     public function run(): void
     {
-        $informatique = Categorie::where('nom', 'Informatique')->first();
-        $mobilier = Categorie::where('nom', 'Mobilier')->first();
+        $faker = Faker::create('fr_FR');
+        $categories = Categorie::all();
+        $fournisseurs = Fournisseur::all();
 
-        $products = [
-            [
-                'nom' => 'Ordinateur Portable Dell XPS 15',
-                'description' => 'PC ultra-puissant pour les professionnels',
-                'quantite' => 15,
-                'seuil_min' => 3,
-                'categorie_id' => $informatique->id,
-                'prix' => 1899.99,
-            ],
-            [
-                'nom' => 'Moniteur 27" LG UltraGear',
-                'description' => 'Écran 4K pour graphisme et gaming',
-                'quantite' => 20,
-                'seuil_min' => 5,
-                'categorie_id' => $informatique->id,
-                'prix' => 450.00,
-            ],
-            [
-                'nom' => 'Chaise de bureau ergonomique',
-                'description' => 'Confort optimal pour de longues heures de travail',
-                'quantite' => 4, // Low stock simulation
-                'seuil_min' => 5,
-                'categorie_id' => $mobilier->id,
-                'prix' => 299.00,
-            ],
-            [
-                'nom' => 'Clavier Mécanique RGB',
-                'description' => 'Saisie rapide et tactile',
-                'quantite' => 50,
-                'seuil_min' => 10,
-                'categorie_id' => $informatique->id,
-                'prix' => 120.50,
-            ],
-        ];
+        if ($categories->isEmpty()) {
+            return;
+        }
 
-        foreach ($products as $p) {
-            Produit::updateOrCreate(['nom' => $p['nom']], $p);
+        $products = [];
+        for ($i = 0; $i < 100; $i++) {
+            $produit = Produit::create([
+                'nom' => $faker->unique()->words(3, true) . ' ' . $faker->lexify('???'),
+                'sku' => $faker->unique()->ean13,
+                'description' => $faker->paragraph,
+                'quantite' => $faker->numberBetween(0, 500),
+                'seuil_min' => $faker->numberBetween(5, 50),
+                'categorie_id' => $categories->random()->id,
+                'prix' => $faker->randomFloat(2, 5, 2000),
+            ]);
+
+            if ($fournisseurs->isNotEmpty()) {
+                $produit->fournisseurs()->attach(
+                    $fournisseurs->random(rand(1, 3))->pluck('id')->toArray(),
+                    ['prix_unitaire' => $faker->randomFloat(2, 4, 1900), 'delai_livraison_jours' => $faker->numberBetween(1, 30)]
+                );
+            }
         }
     }
 }

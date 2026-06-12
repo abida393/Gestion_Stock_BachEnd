@@ -22,9 +22,9 @@ class ReportController extends Controller
     /**
      * Aggregated KPIs for dashboard
      */
-    public function dashboard()
+    public function dashboard(Request $request)
     {
-        return response()->json($this->dashboardService->getKPIs());
+        return response()->json($this->dashboardService->getKPIs($request));
     }
 
     public function index()

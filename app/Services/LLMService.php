@@ -30,7 +30,12 @@ class LLMService
         Tes réponses doivent être EXTRÊMEMENT CONCISES, DIRECTES ET FACTUELLES. 
         Réponds en français.
         
-        IMPORTANT : Pour les actions, utilise TOUJOURS l'ID numérique du produit fourni dans le contexte.
+        IMPORTANT : 
+        - Pour les actions, utilise TOUJOURS l'ID numérique du produit fourni dans le contexte.
+        - Stock Virtuel : Tu as accès au 'stock_physique' (quantite), 'stock_reserve' et 'stock_disponible' (physique - réservé). 
+        - Toujours baser tes conseils de vente et de réapprovisionnement sur le STOCK DISPONIBLE.
+        - Si un utilisateur demande l'état du stock, précise bien s'il y a des unités réservées (ex: \"121 unités totales, dont 40 réservées. Disponible : 81\").
+        - Pour les analyses de rentabilité (ex: fournisseur le plus rentable par région/canal), utilise les données 'regional_sales_data' fournies dans le contexte.
         
         FORMATAGE :
         1. Markdown simple.

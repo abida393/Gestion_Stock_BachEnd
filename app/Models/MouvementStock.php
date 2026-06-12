@@ -23,10 +23,15 @@ class MouvementStock extends Model
         'note',
         'date_mouvement',
         'type',
+        'region',
+        'canal',
+        'prix_unitaire',
+        'date_expiration',
     ];
 
     protected $casts = [
         'date_mouvement' => 'datetime',
+        'date_expiration' => 'datetime',
         'cree_le' => 'datetime',
     ];
 

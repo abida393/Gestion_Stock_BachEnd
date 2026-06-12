@@ -16,7 +16,7 @@ class ProductController extends Controller
      */
     public function index(Request $request)
     {
-        $query = Produit::query();
+        $query = Produit::query()->where('is_active', true);
 
         if ($request->has('categorie_id')) {
             $query->where('categorie_id', $request->categorie_id);
@@ -34,6 +34,8 @@ class ProductController extends Controller
                 $query->whereColumn('quantite', '<=', 'seuil_min')->where('quantite', '>', 0);
             } elseif ($status === 'normal') {
                 $query->whereColumn('quantite', '>', 'seuil_min');
+            } elseif ($status === 'reserved') {
+                $query->where('stock_reserve', '>', 0);
             }
         }
 
@@ -41,7 +43,7 @@ class ProductController extends Controller
             $query->whereRaw('LOWER(nom) LIKE ?', ['%' . strtolower($request->search) . '%']);
         }
 
-        return ProductResource::collection($query->with('categorie')->paginate(15));
+        return ProductResource::collection($query->with('categorie')->paginate($request->input('per_page', 15)));
     }
 
     /**
@@ -59,12 +61,9 @@ class ProductController extends Controller
         return new ProductResource($product);
     }
 
-    /**
-     * Get product details
-     */
     public function show(Produit $product)
     {
-        return new ProductResource($product->load('categorie'));
+        return new ProductResource($product->load(['categorie', 'fournisseurs', 'mouvementStock.utilisateur']));
     }
 
     /**
@@ -112,4 +111,75 @@ class ProductController extends Controller
 
         return new ProductResource($product);
     }
+
+    /**
+     * Export products as CSV
+     */
+    public function export(Request $request)
+    {
+        $query = Produit::query()->where('is_active', true)->with('categorie');
+
+        if ($request->has('categorie_id')) {
+            $query->where('categorie_id', $request->categorie_id);
+        }
+        if ($request->has('status')) {
+            $status = $request->status;
+            if ($status === 'low') {
+                $query->whereColumn('quantite', '<=', 'seuil_min')->where('quantite', '>', 0);
+            } elseif ($status === 'out') {
+                $query->where('quantite', '<=', 0);
+            } elseif ($status === 'reserved') {
+                $query->where('stock_reserve', '>', 0);
+            }
+        }
+
+        $products = $query->get();
+
+        $headers = [
+            'Content-Type'        => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="inventaire_' . now()->format('Y-m-d') . '.csv"',
+        ];
+
+        $callback = function () use ($products) {
+            $handle = fopen('php://output', 'w');
+            // UTF-8 BOM for Excel compatibility
+            fputs($handle, "\xEF\xBB\xBF");
+
+            // Header row
+            fputcsv($handle, [
+                'SKU', 'Nom', 'Catégorie', 'Prix (€)',
+                'Stock Physique', 'En Transit', 'Réservé', 'Disponible',
+                'Seuil Minimum', 'Statut',
+            ], ';');
+
+            foreach ($products as $p) {
+                $disponible = ($p->quantite + $p->stock_en_transit) - $p->stock_reserve;
+                if ($disponible <= 0) {
+                    $statut = 'Rupture';
+                } elseif ($disponible <= $p->seuil_min) {
+                    $statut = 'Stock Faible';
+                } else {
+                    $statut = 'Normal';
+                }
+
+                fputcsv($handle, [
+                    $p->sku ?? '—',
+                    $p->nom,
+                    $p->categorie->nom ?? '—',
+                    number_format($p->prix, 2, '.', ''),
+                    $p->quantite,
+                    $p->stock_en_transit ?? 0,
+                    $p->stock_reserve,
+                    $disponible,
+                    $p->seuil_min,
+                    $statut,
+                ], ';');
+            }
+
+            fclose($handle);
+        };
+
+        return response()->stream($callback, 200, $headers);
+    }
 }
+

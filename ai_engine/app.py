@@ -48,21 +48,32 @@ def build_recommendations(produit, demande, eoq, stock, seuil, confiance):
     """Génère des recommandations textuelles dynamiques."""
     recs = []
 
-    # Rupture imminente
-    if stock < seuil:
-        recs.append(f"⚠️ Stock critique ({stock} unités < seuil {seuil}). Réapprovisionnement urgent recommandé.")
+    transit     = float(produit.get('stock_en_transit', 0) or 0)
+    reserve     = float(produit.get('stock_reserve', 0) or 0)
+    stock_total = stock + transit          # Disponible + En route
+    disponible  = stock_total - reserve    # Net disponible
 
-    # Commande optimale
-    if eoq > 0:
+    # ── Règle 1 : Ignorer alerte réappro si Physique + Transit couvre le seuil ──
+    if stock_total >= seuil:
+        if transit > 0:
+            recs.append(f"🚛 Réapprovisionnement en cours ({int(transit)} u. en transit) — couverture suffisante ({int(stock_total)} u. vs seuil {int(seuil)}).")
+        else:
+            recs.append(f"✅ Stock couvre le seuil de sécurité ({int(stock_total)} u. ≥ {int(seuil)}).")
+    else:
+        recs.append(f"⚠️ Stock critique ({int(stock_total)} u. < seuil {int(seuil)}). Réapprovisionnement urgent recommandé.")
+
+    # ── Règle 2 : Suggérer annulation réservation si transit en retard et disponible négatif ──
+    if transit > 0 and disponible < 0 and reserve > 0:
+        recs.append(
+            f"🔴 Vigilance : le disponible net est négatif ({int(disponible)} u.) "
+            f"avec {int(reserve)} u. réservées. Si le transit est en retard, envisagez "
+            f"d'annuler certaines réservations pour éviter la rupture."
+        )
+
+    # ── Règle 3 : Commande optimale ──
+    if eoq > 0 and stock_total < seuil:
         recs.append(f"📦 Commander {round(eoq)} unités pour minimiser les coûts (EOQ Wilson).")
 
-    # Tendance demande vs stock
-    if demande > stock * 0.8:
-        recs.append("📈 Demande prévue élevée — envisagez d'augmenter le seuil minimum de 20%.")
-    elif demande < stock * 0.3:
-        recs.append("📉 Demande faible — le stock actuel couvre largement les besoins.")
-
-    # Confiance
     if confiance < 0.70:
         recs.append("🔍 Données historiques insuffisantes — résultats indicatifs uniquement.")
     else:
@@ -111,6 +122,7 @@ def build_reasoning(produit_nom, demande, eoq, stock, seuil, confiance, entrees,
             f"{'haussière' if trend_pct > 0 else 'stable'} de {abs(trend_pct)}% "
             f"basée sur {int(sorties)} sorties historiques."
         )
+        # We will inject region/canal here in predict loop, passing it to build_reasoning.
     else:
         parts.append(
             f"Aucune sortie historique — la demande estimée ({round(demande)} u.) "
@@ -154,6 +166,13 @@ def predict():
 
     produits   = data.get('produits', [])
     mouvements = data.get('mouvements', [])
+    period_str = data.get('period', '30j')  # Default 30 days
+    
+    # Extract days from period string (e.g., "7j" -> 7)
+    try:
+        period_days = int(''.join(filter(str.isdigit, period_str)))
+    except ValueError:
+        period_days = 30
 
     # Indexer les mouvements par produit
     mvt_by_product = {}
@@ -161,38 +180,77 @@ def predict():
         pid  = m.get('produit_id')
         type_ = (m.get('type', '') or '').lower()
         qty  = float(m.get('quantite', 0) or 0)
+        region = m.get('region') or 'Non spécifié'
+        canal = m.get('canal') or 'Non spécifié'
         if pid not in mvt_by_product:
-            mvt_by_product[pid] = {'entrees': 0, 'sorties': 0, 'total': 0}
+            mvt_by_product[pid] = {'entrees': 0, 'sorties': 0, 'total': 0, 'first_date': None, 'last_date': None, 'regions': defaultdict(float), 'canals': defaultdict(float)}
+        
         if 'entree' in type_ or type_ == 'in':
             mvt_by_product[pid]['entrees'] += qty
         else:
             mvt_by_product[pid]['sorties'] += qty
+            if region != 'Non spécifié': mvt_by_product[pid]['regions'][region] += qty
+            if canal != 'Non spécifié': mvt_by_product[pid]['canals'][canal] += qty
         mvt_by_product[pid]['total'] += 1
+        
+        # Track date range to calculate daily rate
+        date_str = m.get('date_mouvement')
+        if date_str:
+            try:
+                dt = datetime.fromisoformat(date_str.replace('Z', '+00:00').split('.')[0])
+                if not mvt_by_product[pid]['first_date'] or dt < mvt_by_product[pid]['first_date']:
+                    mvt_by_product[pid]['first_date'] = dt
+                if not mvt_by_product[pid]['last_date'] or dt > mvt_by_product[pid]['last_date']:
+                    mvt_by_product[pid]['last_date'] = dt
+            except: pass
 
     predictions = []
     for produit in produits:
         pid   = produit.get('id')
         nom   = produit.get('nom', produit.get('name', ''))
-        stock = float(produit.get('stock_actuel', produit.get('quantite', 0)) or 0)
+        stock = float(produit.get('stock_disponible', produit.get('stock_actuel', produit.get('quantite', 0))) or 0)
         seuil = float(produit.get('seuil_minimum', produit.get('seuil_min', 0)) or 0)
         prix  = float(produit.get('prix', 10) or 10)
+        # ── Nouveaux champs transit ──
+        transit = float(produit.get('stock_en_transit', 0) or 0)
+        reserve = float(produit.get('stock_reserve', 0) or 0)
 
-        mvt = mvt_by_product.get(pid, {'entrees': 0, 'sorties': 0, 'total': 0})
+        mvt = mvt_by_product.get(pid, {'entrees': 0, 'sorties': 0, 'total': 0, 'first_date': None, 'last_date': None})
         nb_mvt   = mvt['total']
         entrees  = mvt['entrees']
         sorties  = mvt['sorties']
 
-        # Demande prévue : basée sur les sorties historiques (si dispo) ou le stock
-        if sorties > 0:
-            demande = sorties * 1.1   # légère tendance haussière
+        # Calculer la consommation journalière
+        days_span = 30 # default
+        if mvt['first_date'] and mvt['last_date']:
+            delta = (mvt['last_date'] - mvt['first_date']).days
+            days_span = max(1, delta)
+        
+        daily_rate = sorties / days_span
+        
+        # Demande prévue pour la période demandée
+        if daily_rate > 0:
+            demande = daily_rate * period_days * 1.1   # +10% de marge
         else:
-            demande = max(5, stock * 0.4)
+            # Fallback si pas de sorties : 2% du stock par jour
+            demande = (stock * 0.02) * period_days
+            if demande == 0: demande = 5 * (period_days / 30)
 
-        eoq       = compute_eoq(demande * 12, prix_unitaire=prix)   # annualisé
+        eoq       = compute_eoq(daily_rate * 365 if daily_rate > 0 else demande * 12, prix_unitaire=prix)   # annualisé
         confiance = compute_confiance(nb_mvt)
         score_ano = compute_score_anomalie(entrees, sorties)
         recs      = build_recommendations(produit, demande, eoq, stock, seuil, confiance)
         reasoning = build_reasoning(nom, demande, eoq, stock, seuil, confiance, entrees, sorties)
+
+        if mvt.get('regions'):
+            top_region = max(mvt['regions'].items(), key=lambda x: x[1])
+            if top_region[1] > 0:
+                reasoning += f" La région dominante pour les ventes est {top_region[0]} ({int(top_region[1])} u.)."
+        
+        if mvt.get('canals'):
+            top_canal = max(mvt['canals'].items(), key=lambda x: x[1])
+            if top_canal[1] > 0:
+                reasoning += f" Le canal de vente principal est {top_canal[0]} ({int(top_canal[1])} u.)."
 
         predictions.append({
             "produit_id"     : pid,
@@ -238,7 +296,7 @@ def simulate():
     mouvements = data.get('mouvements', [])
     scenario = data.get('scenario', {})
 
-    stock = float(produit.get('stock_actuel', produit.get('quantite', 0)) or 0)
+    stock = float(produit.get('stock_disponible', produit.get('stock_actuel', produit.get('quantite', 0))) or 0)
     seuil = float(produit.get('seuil_minimum', produit.get('seuil_min', 0)) or 0)
     nom   = produit.get('nom', produit.get('name', 'Produit'))
 
@@ -446,7 +504,7 @@ def validate_transaction():
     tentative = data.get('tentative', {})
     historique = data.get('historique', [])
 
-    stock_actuel = float(produit.get('stock_actuel', 0))
+    stock_actuel = float(produit.get('stock_disponible', produit.get('stock_actuel', 0)))
     seuil_min    = float(produit.get('seuil_min', 0))
     nom_produit  = produit.get('nom', 'Produit')
 

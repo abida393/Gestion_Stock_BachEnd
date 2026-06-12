@@ -48,7 +48,10 @@ Route::prefix('v1')->group(function () {
         // ADMIN ONLY ROUTES
         // ==============================================
         Route::middleware('role:admin')->group(function () {
-            // Users
+            // Product requests (Admin can update status)
+            Route::put('/product-requests/{productRequest}/status', [\App\Http\Controllers\Api\ProductRequestController::class, 'updateStatus']);
+
+            // Utilisateurs
             Route::apiResource('users', UserController::class);
             Route::post('users/{user}/roles', [UserController::class, 'assignRole']);
             Route::delete('users/{user}/roles/{roleName}', [UserController::class, 'removeRole']);
@@ -86,10 +89,15 @@ Route::prefix('v1')->group(function () {
 
         // Products & Categories (Read for all users)
         Route::get('products/low-stock', [ProductController::class, 'index'])->name('products.low-stock');
+        Route::get('products/export', [ProductController::class, 'export'])->name('products.export');
         Route::get('products', [ProductController::class, 'index']);
         Route::get('products/{product}', [ProductController::class, 'show']);
         Route::get('categories', [CategoryController::class, 'index']);
         Route::get('categories/{category}', [CategoryController::class, 'show']);
+
+        // Product requests (Shared)
+        Route::get('product-requests', [\App\Http\Controllers\Api\ProductRequestController::class, 'index']);
+        Route::post('product-requests', [\App\Http\Controllers\Api\ProductRequestController::class, 'store']);
 
         // Products & Categories (Create/Update - Admin only)
         Route::middleware('role:admin')->group(function () {
@@ -121,6 +129,10 @@ Route::prefix('v1')->group(function () {
         Route::post('ai/simulate', [AIController::class, 'simulate']);
         Route::get('ai/health-score', [AIController::class, 'healthScore']);
         Route::post('ai/detect-anomalies', [AIController::class, 'detectAnomalies']);
+        Route::get('ai/predictive-alerts', function () {
+            $service = new \App\Services\PredictiveAlertService();
+            return response()->json($service->analyzeAll());
+        });
         Route::post('chat', [ChatController::class, 'chat']);
         Route::post('ai/explain-prevision', [ChatController::class, 'explainPrevision']);
         Route::post('ai/action', [ChatController::class, 'handleAction']);

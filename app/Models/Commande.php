@@ -17,10 +17,14 @@ class Commande extends Model
         'date_commande',
         'statut',
         'total',
+        'date_prevue_livraison',
+        'date_reception_reelle',
     ];
 
     protected $casts = [
         'date_commande' => 'datetime',
+        'date_prevue_livraison' => 'date',
+        'date_reception_reelle' => 'date',
         'total' => 'decimal:2',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
